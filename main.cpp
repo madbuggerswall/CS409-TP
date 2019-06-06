@@ -10,6 +10,7 @@
 #include <algorithm>
 
 using DictPair = std::pair<std::string, unsigned short>;
+
 struct CSVHandler{
 	std::fstream inputStream;
 	
@@ -53,11 +54,18 @@ struct Assistant{
 	std::vector<DictPair> assistedCourses;
 
 	Assistant(const std::vector<std::any>& args) {
-		name = std::any_cast<std::string>(args[0]);
-		maxCourses = std::any_cast<unsigned short>(args[1]);
-		// maxCourses = std::any_cast<unsigned short&&>(std::move(args[1]));
-		// for(short i=2; i < args.size(); ++i){
-		// 	appendAssistedCourses();
+		try{
+			name = std::any_cast<std::string>(args[0]);
+		}catch(const std::exception& e){
+			std::cout << "Assistant constructor: name " << e.what() << std::endl;
+		}
+		try{
+			maxCourses = std::stoi(std::any_cast<std::string>(args[1]));
+		}catch(const std::exception& e){
+			std::cout << "Assistant constructor: maxCourses " << e.what() << std::endl;
+		}
+		// for(short i=2; i < args.size()-1; ++i){
+		// 	appendAssistedCourses(std::any_cast<std::string>(args[i]));
 		// }
 	}
 
@@ -90,9 +98,17 @@ int main(int argc, char const *argv[])
 {
 	CSVHandler assistantsCSV{"../assistants.csv"};
 	auto params = assistantsCSV.read();
+	Assistant a(params[0]);
+	std::cout << a.name << a.maxCourses << std::endl;
+
 	for(auto fieldRow : params){
 		for(auto field : fieldRow){
-			std::cout << std::any_cast<std::string>(field) << " ";
+			// std::cout << std::any_cast<std::string>(field) << "";
+			try{
+				std::cout << std::any_cast<int>(field) << " ";
+			}catch(const std::exception& e){
+				std::cout << "for: " << e.what() << std::endl;
+			}
 		}
 		std::cout << std::endl;
 	}
@@ -113,6 +129,7 @@ int main(int argc, char const *argv[])
 	// auto search = std::find_if(test.begin(), test.end(), criterion);
 	// search->second++;
 	// std::cout << "FOUND - " << search->first << ": " << search->second << std::endl;
+	
 	// auto descending = [](DictPair& a, DictPair& b){
 	// 	return a.second > b.second;
 	// };
