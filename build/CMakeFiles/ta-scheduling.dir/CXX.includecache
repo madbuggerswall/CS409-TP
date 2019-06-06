@@ -1,0 +1,28 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/Users/Pink/Desktop/cpp-playground/ta-scheduling/main.cpp
+iostream
+-
+string
+-
+vector
+-
+variant
+-
+fstream
+-
+sstream
+-
+utility
+-
+tuple
+-
+algorithm
+-
+
