@@ -53,7 +53,8 @@ struct Assistant{
 	std::vector<DictPair> assistedCourses;
 
 	Assistant(const std::vector<std::any>& args) {
-		
+		name = std::any_cast<std::string>(args[0]);
+		maxCourses = std::any_cast<unsigned short>(args[1]);
 		// maxCourses = std::any_cast<unsigned short&&>(std::move(args[1]));
 		// for(short i=2; i < args.size(); ++i){
 		// 	appendAssistedCourses();
@@ -91,9 +92,9 @@ int main(int argc, char const *argv[])
 	auto params = assistantsCSV.read();
 	for(auto fieldRow : params){
 		for(auto field : fieldRow){
-			// std::cout << *std::any_cast<std::string>(&field) << " ";
+			std::cout << std::any_cast<std::string>(field) << " ";
 		}
-		// std::cout << std::endl;
+		std::cout << std::endl;
 	}
 
 	// std::vector<std::pair<std::string, unsigned short>>test;
