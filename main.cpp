@@ -6,11 +6,10 @@
 #include <sstream>
 #include <utility>
 #include <tuple>
-#include<any>
+#include <any>
 #include <algorithm>
 
 using DictPair = std::pair<std::string, unsigned short>;
-
 struct CSVHandler{
 	std::fstream inputStream;
 	
@@ -21,22 +20,25 @@ struct CSVHandler{
 			std::perror("CSVHandler constructor");
 		}
 	}
-
-	auto read(){
-		std::tuple<std::any> fields;
+	
+	auto read() -> std::vector<std::vector<std::any>>	{
+		std::vector<std::any> fieldRows;
+		std::vector<std::vector<std::any>> fields;
 		std::string line;
+		std::string field;
+		std::stringstream lineStream;
 		while(std::getline(inputStream, line)){
-			std::stringstream lineStream{line};
-			std::string field;
+			lineStream = std::stringstream{line};
 			while(std::getline(lineStream, field, ',')){
 				field.erase (std::remove (field.begin(), field.end(), ' '), field.end());
-				fields = std::tuple_cat(fields, std::make_tuple(field));
-				std::cout << field << std::endl;
+				fieldRows.push_back(field);
 			}
+			fields.push_back(fieldRows);
+			fieldRows.clear();
 		}
 		return fields;
 	}	
-
+	
 	// RAII
 	~CSVHandler(){
 		inputStream.close();
@@ -50,14 +52,14 @@ struct Assistant{
 	unsigned short maxCourses;
 	std::vector<DictPair> assistedCourses;
 
-	template<typename ...Ts>
-	Assistant() {
+	Assistant(const std::vector<std::any>& args) {
 		
+		// maxCourses = std::any_cast<unsigned short&&>(std::move(args[1]));
+		// for(short i=2; i < args.size(); ++i){
+		// 	appendAssistedCourses();
+		// }
 	}
-	template<typename F, typename S, typename ...Ts>
-	Assistant(F name, S maxCourses, Ts... args) : name{name}, maxCourses{maxCourses} {
-		(appendAssistedCourses(args),...);
-	}
+
 
 	void appendAssistedCourses(std::string course){
 		auto criterion = [&course](const DictPair& p){
@@ -87,7 +89,13 @@ int main(int argc, char const *argv[])
 {
 	CSVHandler assistantsCSV{"../assistants.csv"};
 	auto params = assistantsCSV.read();
-	Assistant a(params);
+	for(auto fieldRow : params){
+		for(auto field : fieldRow){
+			// std::cout << *std::any_cast<std::string>(&field) << " ";
+		}
+		// std::cout << std::endl;
+	}
+
 	// std::vector<std::pair<std::string, unsigned short>>test;
 	// test.push_back(std::make_pair("Smith", 1)); 
 	// test.push_back({"Stuff", 3}); 
