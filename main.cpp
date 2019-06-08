@@ -46,38 +46,51 @@ struct CSVHandler {
 };
 
 struct Assistant {
-	friend inline void swap(Assistant& first, Assistant& second);
 	std::string name;
 	unsigned short hoursToAssist;
 	unsigned short maxCourses;
 	std::vector<DictPair> assistedCourses;
+
+	friend inline void swap(Assistant& first, Assistant& second);
+
 	Assistant() = default;
-	Assistant(const std::vector<std::string>& args) : name(args[0]),
-																										hoursToAssist(std::stoi(args[1])),
-																										maxCourses(std::stoi(args[2])) {
+	Assistant(const std::vector<std::string>& args)
+			: name(args[0]),
+				hoursToAssist(std::stoi(args[1])),
+				maxCourses(std::stoi(args[2])) {
 		for (short i = 3; i < args.size(); ++i) {
 			appendAssistedCourses(args[i]);
 		}
 	}
 
 	// Copy constructor.
-	Assistant(const Assistant& other) : name(other.name),
-																			hoursToAssist(other.hoursToAssist),
-																			maxCourses(other.maxCourses),
-																			assistedCourses(other.assistedCourses) {}
+	Assistant(const Assistant& other)
+			: name(other.name),
+				hoursToAssist(other.hoursToAssist),
+				maxCourses(other.maxCourses),
+				assistedCourses(other.assistedCourses) {
+		std::cout << "Copy constructor." << std::endl;
+	}
 
 	// Move constructor.
 	Assistant(Assistant&& other) : Assistant() {
+		std::cout << "Move constructor." << std::endl;
 		swap(*this, other);
 	}
+
 	// Copy assignment operator - commented out because it created ambiguity.
-	// Assistant& operator=(Assistant other) {
-	// 	swap(*this, other);
-	// 	return *this;
-	// }
+	Assistant& operator=(const Assistant& other) {
+		std::cout << "Copy assignment operator." << std::endl;
+		name = other.name;
+		hoursToAssist = other.hoursToAssist;
+		maxCourses = other.maxCourses;
+		assistedCourses = other.assistedCourses;
+		return *this;
+	}
 
 	// Move assignment operator.
 	Assistant& operator=(Assistant&& other) {
+		std::cout << "Move assignment operator." << std::endl;
 		swap(*this, other);
 		return *this;
 	}
@@ -112,6 +125,9 @@ struct Course {
 	unsigned short maxTAHours;
 	unsigned short minTACount;
 
+	friend inline void swap(Course& first, Course& second);
+
+	Course() = default;
 	Course(const std::vector<std::string>& args) {
 		courseID = args[0];
 		instructorName = args[1];
@@ -119,6 +135,45 @@ struct Course {
 		maxTAHours = std::stoi(args[3]);
 		minTACount = std::stoi(args[4]);
 	}
+	// Copy constructor.
+	Course(const Course& other) : courseID(other.courseID),
+																instructorName(other.instructorName),
+																minTAHours(other.minTAHours),
+																maxTAHours(other.maxTAHours),
+																minTACount(other.minTACount) {
+	}
+
+	// Move constructor
+	Course(Course&& other) : Course() {
+		swap(*this, other);
+	}
+
+	Course& operator=(const Course& other) {
+		courseID = other.courseID;
+		instructorName = other.instructorName;
+		minTAHours = other.minTAHours;
+		maxTAHours = other.maxTAHours;
+		minTACount = other.minTACount;
+		return *this;
+	}
+
+	Course& operator=(Course&& other) {
+		swap(*this, other);
+		return *this;
+	}
+
+	friend inline void swap(Course& first, Course& second) {
+		using std::swap;
+		swap(first.courseID, second.courseID);
+		swap(first.instructorName, second.instructorName);
+		swap(first.minTAHours, second.minTAHours);
+		swap(first.maxTAHours, second.maxTAHours);
+		swap(first.minTACount, second.minTACount);
+	}
+};
+
+struct Scheduler{
+	
 };
 
 int main(int argc, char const* argv[]) {
