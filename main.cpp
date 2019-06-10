@@ -279,18 +279,13 @@ auto combowrep(int n, int r) {
 	std::vector<int> result(r, 1);
 
 	int index = r - 1;
-	for (int i = 0; i < combination(n, r); i++) {
-		for (auto item : result) {
-			std::cout << item << " ";
-		}
-		std::cout << std::endl;
+	for (int i = 0; i < combination(n, r); ++i) {
 
 		if (sum(result) < n)
 			result[index]++;
 		else {
 			int resetIndex = index;
 			while (sum(result) >= n) {
-				// std::cout << "k: " << k << std::endl;
 				result[resetIndex] = 1;
 				result[resetIndex - 1]++;
 				resetIndex--;
@@ -302,8 +297,7 @@ auto combowrep(int n, int r) {
 }
 
 int main(int argc, char const* argv[]) {
-	combination(10,3);
-	// combowrep(10, 3);
+	// combowrep(6, 3);
 	CSVHandler assistantsCSV{"../assistants.csv"};
 	CSVHandler coursesCSV{"../courses.csv"};
 
@@ -328,19 +322,46 @@ int main(int argc, char const* argv[]) {
 		return a.minTAHours > b.minTAHours;
 	};
 	std::sort(courses.begin(), courses.end(), coursesDesc);
+
+	auto sum = [](std::vector<int> a) {
+		return std::accumulate(a.begin(), a.end(), 0);
+	};
 	auto start = std::chrono::system_clock::now();
 
 	for (auto assistant : assistants) {
 		for (auto maxCourses = 1; maxCourses <= assistant.maxCourses; ++maxCourses) {
-			auto courseSelection = generateCombinations(courses.size(), maxCourses);
-			for (auto row : courseSelection) {
-				for (int i = 0; i < combination(assistant.hoursToAssist / 5, row.size()); i++) {
-					for (int j = 0; j < row.size(); j++) {
+			auto courseCombos = generateCombinations(courses.size(), maxCourses);
+			for (auto courseSelection : courseCombos) {
+				std::vector<int> result(courseSelection.size(), 1);
+				int index = result.size() - 1;
+				int slot = assistant.hoursToAssist / 5;
+				for (int i = 0; i < combination(slot, courseSelection.size()); ++i) {
+					// for (auto item : result) {
+					// 	std::cout << item << " ";
+					// }
+					// std::cout << std::endl;
+
+					for(int courseIndex = 0; courseIndex < courseSelection.size(); ++courseIndex){
+						ScheduleEntry s(courses[courseIndex], assistant, result[courseIndex]);
+						std::cout << s.course.courseID << " " << s.assignedTAs[0].first.name << " " << s.assignedTAs[0].second << " ";
+					}
+					std::cout << std::endl;
+
+					if (sum(result) < slot)
+						result[index]++;
+					else {
+						int resetIndex = index;
+						while (sum(result) >= slot) {
+							result[resetIndex] = 1;
+							result[resetIndex - 1]++;
+							resetIndex--;
+							if (sum(result) == slot)
+								break;
+						}
 					}
 				}
 			}
 		}
-		break;
 	}
 
 	auto end = std::chrono::system_clock::now();
