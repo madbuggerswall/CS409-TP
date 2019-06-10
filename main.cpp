@@ -202,18 +202,15 @@ struct ScheduleEntry {
 		swap(first.course, second.course);
 		swap(first.assignedTAs, second.assignedTAs);
 	}
+};
 
-	void assignTA(Course course, Assistant assistant, unsigned short time){
-	// 	this->course = course;
-	// 	auto criterion = [&assistant, &time](const Assistant& a) {
-	// 		return (assistant.name == a.name);
-	// 	};
-	// 	auto search = std::find_if(assignedTAs.begin(), assignedTAs.end(), criterion);
-	// 	if (search == assignedTAs.end())
-	// 		assignedTAs.push_back(std::make_pair(assistant, time));
-	// 	else
-	// 		search->second += time;
-	}
+struct SchedEntry {
+	Assistant assistant;
+	std::vector<std::vector<std::pair<Course, int>>> assignedCourses;
+
+	SchedEntry() = default;
+	SchedEntry(Assistant assistant, std::vector<std::vector<std::pair<Course, int>>> assignedCourses)
+			: assistant(assistant), assignedCourses(assignedCourses) {}
 };
 
 struct Schedule {
@@ -284,11 +281,12 @@ auto combination(int n, int r) {
 
 // Generates all possible assignments per assistant.
 auto createAllPossibleEntries(std::vector<Assistant> assistants, std::vector<Course> courses) {
-	std::vector<ScheduleEntry> allPossibleEntries;
+	std::vector<SchedEntry> allEntries;
 	auto sum = [](std::vector<int> a) {
 		return std::accumulate(a.begin(), a.end(), 0);
 	};
 	for (auto assistant : assistants) {
+		std::vector<std::vector<std::pair<Course, int>>> assistEntries;
 		for (auto maxCourses = 1; maxCourses <= assistant.maxCourses; ++maxCourses) {
 			auto courseCombos = generateCombinations(courses.size(), maxCourses);
 			for (auto courseSelection : courseCombos) {
@@ -296,11 +294,12 @@ auto createAllPossibleEntries(std::vector<Assistant> assistants, std::vector<Cou
 				int index = result.size() - 1;
 				int slot = assistant.hoursToAssist / 5;
 				for (int i = 0; i < combination(slot, courseSelection.size()); ++i) {
+					std::vector<std::pair<Course, int>> entry;
 					for (int courseIndex = 0; courseIndex < courseSelection.size(); ++courseIndex) {
-						ScheduleEntry s(courses[courseSelection[courseIndex]], assistant, result[courseIndex]);
-						std::cout << s.course.courseID << " " << s.assignedTAs[0].first.name << " " << s.assignedTAs[0].second << " ";
+						entry.push_back(std::make_pair(courses[courseSelection[courseIndex]], result[courseIndex] * 5));
 					}
-					std::cout << std::endl;
+					assistEntries.push_back(entry);
+					entry.clear();
 					if (sum(result) < slot)
 						result[index]++;
 					else {
@@ -316,11 +315,10 @@ auto createAllPossibleEntries(std::vector<Assistant> assistants, std::vector<Cou
 				}
 			}
 		}
+		allEntries.push_back(SchedEntry(assistant, assistEntries));
 	}
-	return allPossibleEntries;
+	return allEntries;
 }
-
-
 
 int main(int argc, char const* argv[]) {
 	CSVHandler assistantsCSV{"../assistants.csv"};
@@ -335,10 +333,10 @@ int main(int argc, char const* argv[]) {
 	for (auto dataRow : assistantData)
 		assistants.push_back(Assistant(dataRow));
 
-	// auto descending = [](const Assistant& a, const Assistant& b) {
-	// 	return a.assistedCourses.size() > b.assistedCourses.size();
-	// };
-	// std::sort(assistants.begin(), assistants.end(), descending);
+	auto descending = [](const Assistant& a, const Assistant& b) {
+		return a.assistedCourses.size() > b.assistedCourses.size();
+	};
+	std::sort(assistants.begin(), assistants.end(), descending);
 
 	for (auto dataRow : courseData)
 		courses.push_back(Course(dataRow));
@@ -349,14 +347,18 @@ int main(int argc, char const* argv[]) {
 	std::sort(courses.begin(), courses.end(), coursesDesc);
 
 	auto start = std::chrono::system_clock::now();
-
 	auto allEntries = createAllPossibleEntries(assistants, courses);
+
+	// Print all possible assignment.
 	for (auto entry : allEntries) {
-		for (auto ta : entry.assignedTAs) {
-			std::cout << entry.course.courseID << " " << ta.first.name;
-			std::cout << " " << ta.second;
+		std::cout << entry.assistant.name << std::endl;
+		for(auto item : entry.assignedCourses){
+			for(auto i : item){
+				std::cout << "\t" << i.first.courseID << " ";
+				std::cout << i.second << " ";
+			}
+			std::cout << std::endl;
 		}
-		std::cout << std::endl;
 	}
 
 	auto end = std::chrono::system_clock::now();
